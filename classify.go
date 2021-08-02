@@ -36,8 +36,12 @@ func Flush() {
 	lastvisit = time.Now().Unix()
 }
 
-func CanVisit() bool {
-	return time.Now().Unix()-lastvisit > 5
+func CanVisit(delay int64) bool {
+	if time.Now().Unix()-lastvisit > delay {
+		Flush()
+		return true
+	}
+	return false
 }
 
 func Classify(ctx *zero.Ctx, targeturl string, noimg bool) {
