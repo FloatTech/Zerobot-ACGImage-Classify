@@ -1,5 +1,5 @@
 # Zerobot-ACGImage-Classify
-Zerobot-ACGImage插件的AI评分接口
+Zerobot-ACGImage插件的AI评分接口，也可单独引用。
 
 # 接口说明
 
