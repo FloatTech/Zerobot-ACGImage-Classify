@@ -16,17 +16,28 @@ import (
 )
 
 var (
-	BOTPATH, _     = os.Getwd() // 当前bot运行目录
-	DATAPATH       = BOTPATH + "/data/acgimage/"
-	CACHE_IMG_FILE = DATAPATH + "cache"
-	CACHE_URI      = "file:///" + CACHE_IMG_FILE
-	CLASSIFY_HEAD  = "http://sayuri.fumiama.top:62002/dice?class=9&url="
-	lastvisit      = time.Now().Unix()
+	botpath, _ = os.Getwd() // 当前bot运行目录
+	datapath   = botpath + "/data/acgimage/"
+	cache_file = datapath + "cache"
+	cache_uri  = "file:///" + cache_file
+	head       = "http://sayuri.fumiama.top:62002/dice?class=9&url="
+	lastvisit  = time.Now().Unix()
+	comments   = []string{
+		"[0]这啥啊",
+		"[1]普通欸",
+		"[2]有点可爱",
+		"[3]不错哦",
+		"[4]很棒",
+		"[5]我好啦!",
+		"[6]影响不好啦!",
+		"[7]太涩啦，🐛了!",
+		"[8]已经🐛不动啦...",
+	}
 )
 
 func init() {
-	os.RemoveAll(DATAPATH) //清除缓存
-	err := os.MkdirAll(DATAPATH, 0755)
+	os.RemoveAll(datapath) //清除缓存
+	err := os.MkdirAll(datapath, 0755)
 	if err != nil {
 		panic(err)
 	}
@@ -49,7 +60,7 @@ func Classify(ctx *zero.Ctx, targeturl string, noimg bool) {
 	if targeturl[0] != '&' {
 		targeturl = url.QueryEscape(targeturl)
 	}
-	get_url := CLASSIFY_HEAD + targeturl
+	get_url := head + targeturl
 	if noimg {
 		get_url += "&noimg=true"
 	}
@@ -75,7 +86,7 @@ func Classify(ctx *zero.Ctx, targeturl string, noimg bool) {
 			defer resp.Body.Close()
 			// 写入文件
 			data, _ := ioutil.ReadAll(resp.Body)
-			f, _ := os.OpenFile(CACHE_IMG_FILE+strconv.FormatInt(lv, 10), os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
+			f, _ := os.OpenFile(cache_file+strconv.FormatInt(lv, 10), os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
 			defer f.Close()
 			f.Write(data)
 			replyClass(ctx, dhash, class, noimg, lv)
@@ -84,43 +95,25 @@ func Classify(ctx *zero.Ctx, targeturl string, noimg bool) {
 }
 
 func replyClass(ctx *zero.Ctx, dhash string, class int, noimg bool, lv int64) {
+	img := message.Image(cache_uri + strconv.FormatInt(lv, 10))
 	if class > 5 {
-		switch class {
-		case 6:
-			ctx.Send("[6]影响不好啦!")
-		case 7:
-			ctx.Send("[7]太涩啦，🐛了!")
-		case 8:
-			ctx.Send("[8]已经🐛不动啦...")
-		}
 		if dhash != "" && !noimg {
 			b14, err3 := url.QueryUnescape(dhash)
 			if err3 == nil {
-				ctx.Send("给你点提示哦：" + b14)
+				ctx.Send(comments[class] + "给你点提示哦:" + b14)
 			}
 			ctx.Event.GroupID = 0
-			ctx.SendChain(message.Text("偷偷发给你啦，不要和别人说哦"), message.Image(CACHE_URI+strconv.FormatInt(lv, 10)))
+			ctx.SendGroupMessage(0, img)
+			ctx.SendChain(message.Text("偷偷发给你啦，不要和别人说哦"), img)
+		} else {
+			ctx.Send(comments[class])
 		}
 	} else {
-		var last_message_id int64
+		comment := message.Text(comments[class])
 		if !noimg {
-			last_message_id = ctx.SendChain(message.Image(CACHE_URI + strconv.FormatInt(lv, 10)))
+			ctx.SendChain(message.Image(cache_uri+strconv.FormatInt(lv, 10)), comment)
 		} else {
-			last_message_id = ctx.Event.MessageID
-		}
-		switch class {
-		case 0:
-			ctx.SendChain(message.Reply(last_message_id), message.Text("[0]这啥啊"))
-		case 1:
-			ctx.SendChain(message.Reply(last_message_id), message.Text("[1]普通欸"))
-		case 2:
-			ctx.SendChain(message.Reply(last_message_id), message.Text("[2]有点可爱"))
-		case 3:
-			ctx.SendChain(message.Reply(last_message_id), message.Text("[3]不错哦"))
-		case 4:
-			ctx.SendChain(message.Reply(last_message_id), message.Text("[4]很棒"))
-		case 5:
-			ctx.SendChain(message.Reply(last_message_id), message.Text("[5]我好啦!"))
+			ctx.SendChain(message.Reply(ctx.Event.MessageID), comment)
 		}
 	}
 }
