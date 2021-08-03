@@ -98,6 +98,8 @@ func replyClass(ctx *zero.Ctx, dhash string, class int, noimg bool, lv int64) {
 			if err3 == nil {
 				ctx.Send("给你点提示哦：" + b14)
 			}
+			ctx.Event.GroupID = 0
+			ctx.SendChain(message.Text("偷偷发给你啦，不要和别人说哦"), message.Image(CACHE_URI+strconv.FormatInt(lv, 10)))
 		}
 	} else {
 		var last_message_id int64
