@@ -1,5 +1,6 @@
-# Zerobot-ACGImage-Classify
-Zerobot-ACGImage插件的AI评分接口，也可单独引用。
+> 本插件已合并入[AnimeAPI](https://github.com/FloatTech/AnimeAPI)，本仓库不再迭代/维护
+# ~~Zerobot-ACGImage-Classify~~
+~~Zerobot-ACGImage插件的AI评分接口，也可单独引用。~~
 
 # 接口说明
 
